@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clockitsc - Free Customizable Clock Online</title>
+    <link rel="icon" href="favicon.ico" type="image/x-icon">
+    <meta name="google-site-verification" content="your_google_verification_code_here" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            text-align: center;
+            /* Background color will be set by JavaScript */
+        }
+
+        .clock {
+            font-size: 2em;
+            color: #fff; /* Default text color */
+        }
+
+        .date {
+            font-size: 1em; /* Make the date smaller by default */
+            color: #fff; /* Default text color */
+        }
+
+        .menu {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+        }
+
+        .fullscreen-btn {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1em;
+            padding: 5px;
+            cursor: pointer;
+            background-color: black; /* Changed background to black */
+            border: 1px solid #333; /* Darker border for better visibility */
+            color: white; /* Changed text to white */
+            border-radius: 5px; /* Optional: Add rounded corners */
+        }
+
+        .menu button {
+            font-size: 1.5em;
+            background-color: black; /* Changed background to black */
+            border: none;
+            cursor: pointer;
+            color: white; /* Changed text to white */
+            padding: 8px 12px; /* Add some padding for a better touch area */
+            border-radius: 5px; /* Optional: Add rounded corners */
+        }
+
+        .menu-content {
+            display: none;
+            position: absolute;
+            top: 50px;
+            right: 10px;
+            background: white;
+            border: 1px solid #ccc;
+            padding: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        .menu-content label {
+            display: block;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-btn" onclick="toggleFullscreen()"><sup>⇱</sup><sub>⇲</sub></button>
+    <div class="clock" id="clock"></div>
+    <div class="date" id="date"></div>
+    <div class="menu">
+        <button onclick="toggleMenu()">☰</button>
+        <div class="menu-content" id="menuContent">
+            <h3> Clock Options
+            _____________ </h3>
+            <label for="fontSize">Size</label>
+            <input type="range" id="fontSize" min="3" max="7" step="0.1" value="3" onchange="changeFontSize(this.value)">
+            <label for="fontStyle">Font</label>
+            <select id="fontStyle" onchange="changeFontStyle(this.value)">
+                <option value="Arial">Arial</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Verdana">Verdana</option>
+            </select>
+            <label for="textColor">Text Colour</label>
+            <input type="color" id="textColor" onchange="changeTextColor(this.value)">
+            <label for="backgroundColor">Background Colour</label>
+            <input type="color" id="backgroundColor" onchange="changeBackgroundColor(this.value)">
+            <label for="dateOrder">Date Format</label>
+            <select id="dateOrder" onchange="changeDateOrder(this.value)">
+                <option value="DMY">Day-Month-Year</option>
+                <option value="MDY">Month-Day-Year</option>
+                <option value="YMD">Year-Month-Day</option>
+            </select>
+            <label for="monthFormat">Month Format</label>
+            <select id="monthFormat" onchange="changeMonthFormat(this.value)">
+                <option value="number">Number</option>
+                <option value="word">Word</option>
+            </select>
+            <div id="separatorContainer">
+                <label for="separator">Date Seperator</label>
+                <select id="separator" onchange="changeSeparator(this.value)">
+                    <option value="/">/</option>
+                    <option value="-">-</option>
+                    <option value=".">.</option>
+                    <option value=" ">None</option>
+                </select>
+            </div>
+            <label>
+                <input type="checkbox" id="showSeconds" onchange="toggleSeconds(this.checked)">
+                Show Seconds
+            </label>
+            <div id="showAmPmContainer">
+                <label>
+                    <input type="checkbox" id="showAmPm" onchange="toggleAmPm(this.checked)">
+                    Show AM/PM
+                </label>
+            </div>
+            <label for="timeFormat">Time Format:</label>
+            <select id="timeFormat" onchange="changeTimeFormat(this.value)">
+                <option value="12">12-Hour</option>
+                <option value="24">24-Hour</option>
+            </select>
+        </div>
+    </div>
+
+    <script>
+        let dateOrder = localStorage.getItem('dateOrder') || "DMY";
+        let monthFormat = localStorage.getItem('monthFormat') || "number";
+        let separator = localStorage.getItem('separator') || "/";
+        let showSeconds = localStorage.getItem('showSeconds') === 'true' || true;
+        let showAmPm = localStorage.getItem('showAmPm') === 'true' || true;
+        let timeFormat = localStorage.getItem('timeFormat') || "12";
+        let fontSize = localStorage.getItem('fontSize') || "2";
+        let fontStyle = localStorage.getItem('fontStyle') || "Arial";
+        let textColor = localStorage.getItem('textColor') || "#333333";
+        let backgroundColor = localStorage.getItem('backgroundColor') || "#f0f0f0";
+
+        const fullscreenButton = document.querySelector('.fullscreen-btn'); // Get the button
+
+        document.addEventListener("DOMContentLoaded", function () {
+            updateClockAndDate();
+            setInterval(updateClockAndDate, 0.000001);
+
+            document.getElementById("fontSize").value = fontSize;
+            document.getElementById("fontStyle").value = fontStyle;
+            document.getElementById("textColor").value = textColor;
+            document.getElementById("backgroundColor").value = backgroundColor;
+            document.getElementById("dateOrder").value = dateOrder;
+            document.getElementById("monthFormat").value = monthFormat;
+            if (monthFormat !== "word") {
+                document.getElementById("separator").value = separator;
+            }
+            document.getElementById("showSeconds").checked = showSeconds;
+            document.getElementById("showAmPm").checked = showAmPm;
+            document.getElementById("timeFormat").value = timeFormat;
+
+            changeFontSize(fontSize);
+            changeFontStyle(fontStyle);
+            changeTextColor(textColor);
+            changeBackgroundColor(backgroundColor);
+            changeDateOrder(dateOrder);
+            changeMonthFormat(monthFormat);
+            if (monthFormat !== "word") {
+                changeSeparator(separator);
+            }
+            toggleSeconds(showSeconds);
+            toggleAmPm(showAmPm);
+            changeTimeFormat(timeFormat);
+
+            // Set initial button text (optional, as it's in the HTML now)
+            // fullscreenButton.innerHTML = '<sup>⇱</sup><sub>⇲</sub>';
+        });
+
+        function updateClockAndDate() {
+            const now = new Date();
+
+            let hours = now.getHours();
+            const minutes = String(now.getMinutes()).padStart(2, "0");
+            const seconds = String(now.getSeconds()).padStart(2, "0");
+            let amPm = "";
+
+            if (timeFormat === "12") {
+                amPm = hours >= 12 ? (showAmPm ? " PM" : "") : (showAmPm ? " AM" : "");
+                hours = hours % 12 || 12;
+            }
+
+            const time = `${hours}:${minutes}${showSeconds ? `:${seconds}` : ""}${amPm}`;
+            document.getElementById("clock").textContent = time;
+
+            const day = String(now.getDate()).padStart(2, "0");
+            const monthNumber = String(now.getMonth() + 1).padStart(2, "0");
+            const year = now.getFullYear();
+            const monthWord = now.toLocaleString("en-US", { month: "long" });
+
+            let monthDisplay;
+            let separatorDisplay;
+
+            if (monthFormat === "word") {
+                monthDisplay = monthWord;
+                separatorDisplay = " ";
+            } else {
+                monthDisplay = monthNumber;
+                separatorDisplay = separator;
+            }
+
+            let formattedDate;
+            if (dateOrder === "DMY") {
+                formattedDate = `${day}${separatorDisplay}${monthDisplay}${separatorDisplay}${year}`;
+            } else if (dateOrder === "MDY") {
+                formattedDate = `${monthDisplay}${separatorDisplay}${day}${separatorDisplay}${year}`;
+            } else if (dateOrder === "YMD") {
+                formattedDate = `${year}${separatorDisplay}${monthDisplay}${separatorDisplay}${day}`;
+            }
+            document.getElementById("date").textContent = formattedDate;
+
+            document.getElementById("separatorContainer").style.display = monthFormat === "word" ? "none" : "block";
+            document.getElementById("showAmPmContainer").style.display = timeFormat === "24" ? "none" : "block";
+        }
+
+        function toggleMenu() {
+            let menuContent = document.getElementById("menuContent");
+            menuContent.style.display = menuContent.style.display === "block" ? "none" : "block";
+        }
+
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+                fullscreenButton.innerHTML = '<sup>⇲</sup><sub>⇱</sub>'; // Reversed for exit
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullscreenButton.innerHTML = '<sup>⇱</sup><sub>⇲</sub>'; // Back to initial
+                }
+            }
+        }
+
+        function changeFontSize(size) {
+            document.getElementById("clock").style.fontSize = `${size}em`;
+            document.getElementById("date").style.fontSize = `${size}em`;
+            localStorage.setItem('fontSize', size);
+        }
+
+        function changeFontStyle(style) {
+            document.getElementById("clock").style.fontFamily = style;
+            document.getElementById("date").style.fontFamily = style;
+            localStorage.setItem('fontStyle', style);
+        }
+
+        function changeTextColor(color) {
+            document.getElementById("clock").style.color = color;
+            document.getElementById("date").style.color = color;
+            document.querySelector('.fullscreen-btn').style.color = 'white'; /* Force white text */
+            localStorage.setItem('textColor', color);
+        }
+
+        function changeBackgroundColor(color) {
+            document.body.style.backgroundColor = color;
+            localStorage.setItem('backgroundColor', color);
+        }
+
+        function changeDateOrder(order) {
+            dateOrder = order;
+            updateClockAndDate();
+            localStorage.setItem('dateOrder', order);
+        }
+
+        function changeMonthFormat(format) {
+            monthFormat = format;
+            document.getElementById("separatorContainer").style.display = format === "word" ? "none" : "block";
+            updateClockAndDate();
+            localStorage.setItem('monthFormat', format);
+        }
+
+        function changeSeparator(newSeparator) {
+            separator = newSeparator;
+            updateClockAndDate();
+            localStorage.setItem('separator', newSeparator);
+        }
+
+        function toggleSeconds(show) {
+            showSeconds = show;
+            updateClockAndDate();
+            localStorage.setItem('showSeconds', show);
+        }
+
+        function toggleAmPm(show) {
+            showAmPm = show;
+            updateClockAndDate();
+            localStorage.setItem('showAmPm', show);
+        }
+
+        function changeTimeFormat(format) {
+            timeFormat = format;
+            document.getElementById("showAmPmContainer").style.display = format === "24" ? "none" : "block";
+            updateClockAndDate();
+            localStorage.setItem('timeFormat', format);
+        }
+    </script>
+</body>
+</html>
