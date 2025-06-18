@@ -16,17 +16,16 @@
             height: 100vh;
             margin: 0;
             text-align: center;
-            /* Background color will be set by JavaScript */
         }
 
         .clock {
             font-size: 2em;
-            color: #fff; /* Default text color */
+            color: #fff;
         }
 
         .date {
-            font-size: 1em; /* Make the date smaller by default */
-            color: #fff; /* Default text color */
+            font-size: 1em;
+            color: #fff;
         }
 
         .menu {
@@ -42,20 +41,20 @@
             font-size: 1em;
             padding: 5px;
             cursor: pointer;
-            background-color: black; /* Changed background to black */
-            border: 1px solid #333; /* Darker border for better visibility */
-            color: white; /* Changed text to white */
-            border-radius: 5px; /* Optional: Add rounded corners */
+            background-color: black;
+            border: 1px solid #333;
+            color: white;
+            border-radius: 5px;
         }
 
         .menu button {
             font-size: 1.5em;
-            background-color: black; /* Changed background to black */
+            background-color: black;
             border: none;
             cursor: pointer;
-            color: white; /* Changed text to white */
-            padding: 8px 12px; /* Add some padding for a better touch area */
-            border-radius: 5px; /* Optional: Add rounded corners */
+            color: white;
+            padding: 8px 12px;
+            border-radius: 5px;
         }
 
         .menu-content {
@@ -73,6 +72,30 @@
             display: block;
             margin-bottom: 10px;
         }
+
+        .color-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            margin-bottom: 10px;
+        }
+
+        .color-btn {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+        }
+
+        .color-btn.custom {
+            font-size: 0.7em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #fff;
+            color: #333;
+        }
     </style>
 </head>
 <body>
@@ -82,10 +105,11 @@
     <div class="menu">
         <button onclick="toggleMenu()">☰</button>
         <div class="menu-content" id="menuContent">
-            <h3> Clock Options
-            _____________ </h3>
+            <h3> Clock Options<br>_____________</h3>
+
             <label for="fontSize">Size</label>
             <input type="range" id="fontSize" min="3" max="7" step="0.1" value="3" onchange="changeFontSize(this.value)">
+
             <label for="fontStyle">Font</label>
             <select id="fontStyle" onchange="changeFontStyle(this.value)">
                 <option value="Arial">Arial</option>
@@ -93,21 +117,30 @@
                 <option value="Times New Roman">Times New Roman</option>
                 <option value="Verdana">Verdana</option>
             </select>
-            <label for="textColor">Text Colour</label>
-            <input type="color" id="textColor" onchange="changeTextColor(this.value)">
-            <label for="backgroundColor">Background Colour</label>
-            <input type="color" id="backgroundColor" onchange="changeBackgroundColor(this.value)">
+
+            <!-- Text Color Section -->
+            <label>Text Colour</label>
+            <div id="presetTextColors" class="color-options"></div>
+            <input type="color" id="textColorPicker" style="display:none;" onchange="changeTextColor(this.value)">
+
+            <!-- Background Color Section -->
+            <label>Background Colour</label>
+            <div id="presetBgColors" class="color-options"></div>
+            <input type="color" id="bgColorPicker" style="display:none;" onchange="changeBackgroundColor(this.value)">
+
             <label for="dateOrder">Date Format</label>
             <select id="dateOrder" onchange="changeDateOrder(this.value)">
                 <option value="DMY">Day-Month-Year</option>
                 <option value="MDY">Month-Day-Year</option>
                 <option value="YMD">Year-Month-Day</option>
             </select>
+
             <label for="monthFormat">Month Format</label>
             <select id="monthFormat" onchange="changeMonthFormat(this.value)">
                 <option value="number">Number</option>
                 <option value="word">Word</option>
             </select>
+
             <div id="separatorContainer">
                 <label for="separator">Date Seperator</label>
                 <select id="separator" onchange="changeSeparator(this.value)">
@@ -117,16 +150,19 @@
                     <option value=" ">None</option>
                 </select>
             </div>
+
             <label>
                 <input type="checkbox" id="showSeconds" onchange="toggleSeconds(this.checked)">
                 Show Seconds
             </label>
+
             <div id="showAmPmContainer">
                 <label>
                     <input type="checkbox" id="showAmPm" onchange="toggleAmPm(this.checked)">
                     Show AM/PM
                 </label>
             </div>
+
             <label for="timeFormat">Time Format:</label>
             <select id="timeFormat" onchange="changeTimeFormat(this.value)">
                 <option value="12">12-Hour</option>
@@ -139,29 +175,26 @@
         let dateOrder = localStorage.getItem('dateOrder') || "DMY";
         let monthFormat = localStorage.getItem('monthFormat') || "number";
         let separator = localStorage.getItem('separator') || "/";
-        let showSeconds = localStorage.getItem('showSeconds') === 'true' || true;
-        let showAmPm = localStorage.getItem('showAmPm') === 'true' || true;
+        let showSeconds = localStorage.getItem('showSeconds') === 'false' ? false : true;
+        let showAmPm = localStorage.getItem('showAmPm') === 'false' ? false : true;
         let timeFormat = localStorage.getItem('timeFormat') || "12";
         let fontSize = localStorage.getItem('fontSize') || "2";
         let fontStyle = localStorage.getItem('fontStyle') || "Arial";
-        let textColor = localStorage.getItem('textColor') || "#333333";
-        let backgroundColor = localStorage.getItem('backgroundColor') || "#f0f0f0";
+        let textColor = localStorage.getItem('textColor') || "#ffffff";
+        let backgroundColor = localStorage.getItem('backgroundColor') || "#000000";
 
-        const fullscreenButton = document.querySelector('.fullscreen-btn'); // Get the button
+        const presetTextColors = ["#ffffff", "#000000", "#ff0000", "#00ff00", "#0000ff", "#ffff00"];
+        const presetBgColors = ["#000000", "#ffffff", "#333333", "#f0f0f0", "#1e1e1e", "#005f73"];
 
         document.addEventListener("DOMContentLoaded", function () {
             updateClockAndDate();
-            setInterval(updateClockAndDate, 0.000001);
+            setInterval(updateClockAndDate, 1000);
 
             document.getElementById("fontSize").value = fontSize;
             document.getElementById("fontStyle").value = fontStyle;
-            document.getElementById("textColor").value = textColor;
-            document.getElementById("backgroundColor").value = backgroundColor;
             document.getElementById("dateOrder").value = dateOrder;
             document.getElementById("monthFormat").value = monthFormat;
-            if (monthFormat !== "word") {
-                document.getElementById("separator").value = separator;
-            }
+            document.getElementById("separator").value = separator;
             document.getElementById("showSeconds").checked = showSeconds;
             document.getElementById("showAmPm").checked = showAmPm;
             document.getElementById("timeFormat").value = timeFormat;
@@ -172,15 +205,13 @@
             changeBackgroundColor(backgroundColor);
             changeDateOrder(dateOrder);
             changeMonthFormat(monthFormat);
-            if (monthFormat !== "word") {
-                changeSeparator(separator);
-            }
+            changeSeparator(separator);
             toggleSeconds(showSeconds);
             toggleAmPm(showAmPm);
             changeTimeFormat(timeFormat);
 
-            // Set initial button text (optional, as it's in the HTML now)
-            // fullscreenButton.innerHTML = '<sup>⇱</sup><sub>⇲</sub>';
+            createColorButtons("presetTextColors", presetTextColors, changeTextColor, "textColorPicker");
+            createColorButtons("presetBgColors", presetBgColors, changeBackgroundColor, "bgColorPicker");
         });
 
         function updateClockAndDate() {
@@ -220,11 +251,11 @@
                 formattedDate = `${day}${separatorDisplay}${monthDisplay}${separatorDisplay}${year}`;
             } else if (dateOrder === "MDY") {
                 formattedDate = `${monthDisplay}${separatorDisplay}${day}${separatorDisplay}${year}`;
-            } else if (dateOrder === "YMD") {
+            } else {
                 formattedDate = `${year}${separatorDisplay}${monthDisplay}${separatorDisplay}${day}`;
             }
-            document.getElementById("date").textContent = formattedDate;
 
+            document.getElementById("date").textContent = formattedDate;
             document.getElementById("separatorContainer").style.display = monthFormat === "word" ? "none" : "block";
             document.getElementById("showAmPmContainer").style.display = timeFormat === "24" ? "none" : "block";
         }
@@ -235,14 +266,13 @@
         }
 
         function toggleFullscreen() {
+            const btn = document.querySelector('.fullscreen-btn');
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen();
-                fullscreenButton.innerHTML = '<sup>⇲</sup><sub>⇱</sub>'; // Reversed for exit
+                btn.innerHTML = '<sup>⇲</sup><sub>⇱</sub>';
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                    fullscreenButton.innerHTML = '<sup>⇱</sup><sub>⇲</sub>'; // Back to initial
-                }
+                document.exitFullscreen();
+                btn.innerHTML = '<sup>⇱</sup><sub>⇲</sub>';
             }
         }
 
@@ -261,7 +291,6 @@
         function changeTextColor(color) {
             document.getElementById("clock").style.color = color;
             document.getElementById("date").style.color = color;
-            document.querySelector('.fullscreen-btn').style.color = 'white'; /* Force white text */
             localStorage.setItem('textColor', color);
         }
 
@@ -306,6 +335,31 @@
             document.getElementById("showAmPmContainer").style.display = format === "24" ? "none" : "block";
             updateClockAndDate();
             localStorage.setItem('timeFormat', format);
+        }
+
+        function createColorButtons(containerId, colors, changeHandler, pickerId) {
+            const container = document.getElementById(containerId);
+            colors.forEach(color => {
+                const btn = document.createElement("div");
+                btn.className = "color-btn";
+                btn.style.backgroundColor = color;
+                btn.onclick = () => {
+                    document.getElementById(pickerId).style.display = "none";
+                    changeHandler(color);
+                };
+                container.appendChild(btn);
+            });
+
+            const customBtn = document.createElement("div");
+            customBtn.className = "color-btn custom";
+            customBtn.textContent = "+";
+            customBtn.title = "Custom color";
+            customBtn.onclick = () => {
+                const picker = document.getElementById(pickerId);
+                picker.style.display = "inline-block";
+                picker.click();
+            };
+            container.appendChild(customBtn);
         }
     </script>
 </body>
